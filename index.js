@@ -37,6 +37,30 @@ app.get('/api/categories/:id', (req, res) => {
   res.status(200).send(requestedCategory);
 });
 
+app.post('/api/categories', (req, res) => {
+  const { error } = categoryScheme(req.body);
+  if( error ) {
+    return res.status(400).send(error.details[0].message);
+  }
+
+  const newCategory = {
+    id: categories.length + 1,
+    name: req.body.name,
+  };
+
+  categories.push(newCategory);
+
+  return res.status(201).send(categories[categories.length-1]);
+});
+
+function categoryScheme(validatingObject) {
+  const categoryScheme = Joi.object({
+    name: Joi.string().required().min(3),
+  });
+
+  return categoryScheme.validate(validatingObject);
+}
+
 
 function userDataSanitizator(userData) {
   return userData.trim();
