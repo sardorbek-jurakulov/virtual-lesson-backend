@@ -60,7 +60,19 @@ app.put('/api/categories/:id', (req, res) => {
     return res.status(400).send(error.details[0].message);
   }
 
-  const updatedCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
+  const updatingCategoryId = parseInt(req.params.id);
+
+  if(updatingCategoryId < 1 || updatingCategoryId > categories.length-1) {
+    return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
+  }
+
+  const updatingCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
+  const updatedCategory = {
+    id: updatingCategoryIndex,
+    name: req.body.name,
+  }
+  categories.splice(updatingCategoryIndex, 1, updatedCategory);
+  return res.status(200).send(categories[updatingCategoryIndex]);
 });
 
 function categoryValidator(validatingObject) {
