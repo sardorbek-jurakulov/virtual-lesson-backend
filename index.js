@@ -31,6 +31,12 @@ app.get('/api/categories', (req, res) => {
   res.status(200).send(categories);
 });
 
+app.get('/api/categories/:id', (req, res) => {
+  const requestedCategoryId = parseInt(req.params.id);
+  const requestedCategory = categories.find(category => category.id === requestedCategoryId);
+  res.status(200).send(requestedCategory);
+});
+
 
 function userDataSanitizator(userData) {
   return userData.trim();
