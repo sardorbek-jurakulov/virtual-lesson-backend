@@ -60,9 +60,7 @@ app.put('/api/categories/:id', (req, res) => {
     return res.status(400).send(error.details[0].message);
   }
 
-  const updatingCategoryId = parseInt(req.params.id);
-
-  if(updatingCategoryId < 1 || updatingCategoryId > categories.length) {
+  if(userIdParamValidator(req.params.id) === "invalid") {
     return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
   }
 
@@ -75,6 +73,15 @@ app.put('/api/categories/:id', (req, res) => {
   return res.status(200).send(categories[updatingCategoryIndex]);
 });
 
+app.delete('/api/categories/:id', (req, res) => {
+  if(userIdParamValidator(req.params.id) === "invalid") {
+    return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
+  }
+  const updatingCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
+  categories.splice(updatingCategoryIndex, 1, );
+  return res.status(200).send(categories);
+});
+
 function categoryValidator(validatingObject) {
   const categoryScheme = Joi.object({
     name: Joi.string().required().min(3),
@@ -85,6 +92,12 @@ function categoryValidator(validatingObject) {
 
 function userDataSanitizator(userData) {
   return userData.trim();
+}
+
+function userIdParamValidator(id) {
+  const updatingCategoryId = parseInt(id);
+
+  return (updatingCategoryId < 1 || updatingCategoryId > categories.length) ? "invalid" : "valid"
 }
 
 const port = process.env.PORT || 5000;
