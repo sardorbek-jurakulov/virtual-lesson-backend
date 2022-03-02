@@ -62,14 +62,14 @@ app.put('/api/categories/:id', (req, res) => {
 
   const updatingCategoryId = parseInt(req.params.id);
 
-  if(updatingCategoryId < 1 || updatingCategoryId > categories.length-1) {
+  if(updatingCategoryId < 1 || updatingCategoryId > categories.length) {
     return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
   }
 
   const updatingCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
   const updatedCategory = {
-    id: updatingCategoryIndex,
-    name: req.body.name,
+    id: updatingCategoryIndex+1,
+    name: userDataSanitizator(req.body.name),
   }
   categories.splice(updatingCategoryIndex, 1, updatedCategory);
   return res.status(200).send(categories[updatingCategoryIndex]);
@@ -82,7 +82,6 @@ function categoryValidator(validatingObject) {
 
   return categoryScheme.validate(validatingObject);
 }
-
 
 function userDataSanitizator(userData) {
   return userData.trim();
