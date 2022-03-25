@@ -1,5 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const config = require('config');
+const { default: mongoose } = require('mongoose');
+
+const dbConnection = config.get("dbConfig");
+
+mongoose.connect(dbConnection)
+  .then(() => {
+    console.log('Ma\'lumotlar omboriga ulanish muvaffaqiyatli amalga oshirildi');
+  })
+  .catch((err) => {
+    console.log('Ma\'lumotlar omboriga ulanish muvaffaqiyatli amalga oshirilmadi', err);
+  });
 
 let categories = [
   {
@@ -24,17 +36,17 @@ let categories = [
   },
 ];
 
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.status(200).send(categories);
 });
 
-app.get('/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   const requestedCategoryId = parseInt(req.params.id);
   const requestedCategory = categories.find(category => category.id === requestedCategoryId);
   res.status(200).send(requestedCategory);
 });
 
-app.post('/', (req, res) => {
+router.post('/', (req, res) => {
   const { error } = categoryValidator(req.body);
   if( error ) {
     return res.status(400).send(error.details[0].message);
@@ -50,7 +62,7 @@ app.post('/', (req, res) => {
   return res.status(201).send(categories[categories.length-1]);
 });
 
-app.put('/:id', (req, res) => {
+router.put('/:id', (req, res) => {
   const { error } = categoryValidator(req.body);
 
   if( error ) {
@@ -70,7 +82,7 @@ app.put('/:id', (req, res) => {
   return res.status(200).send(categories[updatingCategoryIndex]);
 });
 
-app.delete('/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
   if(userIdParamValidator(req.params.id) === "invalid") {
     return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
   }
