@@ -1,0 +1,3 @@
+{
+  "dbConfig": "mongodb://localhost/virtual_lesson"
+}
