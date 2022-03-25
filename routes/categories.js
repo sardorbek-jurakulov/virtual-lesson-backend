@@ -13,6 +13,29 @@ mongoose.connect(dbConnection)
     console.log('Ma\'lumotlar omboriga ulanish muvaffaqiyatli amalga oshirilmadi', err);
   });
 
+const categoriesSchema = new mongoose.Schema({
+  name: {
+    type: String, 
+    required: true,
+    minlength: 2,
+    maxlength: 300,
+    trim: true
+  }
+});
+
+const Categories = mongoose.model("Categories", categoriesSchema);
+
+async function createCategory() {
+  const category = new Categories({
+    name: "Dasturlash"
+  });
+
+  const createdCategory = await category.save();
+  console.log(createdCategory);
+}
+
+createCategory();
+
 let categories = [
   {
     id: 1,
