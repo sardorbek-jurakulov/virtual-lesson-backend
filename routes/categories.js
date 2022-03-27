@@ -1,117 +1,84 @@
 const express = require('express');
 const router = express.Router();
-const config = require('config');
-const { default: mongoose } = require('mongoose');
+const Joi = require('joi');
+const mongoose = require('mongoose');
 
-const dbConnection = config.get("dbConfig");
-
-mongoose.connect(dbConnection)
-  .then(() => {
-    console.log('Ma\'lumotlar omboriga ulanish muvaffaqiyatli amalga oshirildi');
-  })
-  .catch((err) => {
-    console.log('Ma\'lumotlar omboriga ulanish muvaffaqiyatli amalga oshirilmadi', err);
-  });
-
-const categoriesSchema = new mongoose.Schema({
+const categorySchema = new mongoose.Schema({
   name: {
     type: String, 
     required: true,
-    minlength: 2,
-    maxlength: 300,
+    minlength: 5,
+    maxlength: 50,
     trim: true
   }
 });
 
-const Categories = mongoose.model("Categories", categoriesSchema);
+const Categories = mongoose.model("Categories", categorySchema);
 
 async function createCategory() {
   const category = new Categories({
-    name: "Dasturlash"
+    name: "Ma'lumotlar ombori"
   });
 
   const createdCategory = await category.save();
   console.log(createdCategory);
 }
 
-createCategory();
-
-let categories = [
-  {
-    id: 1,
-    name: "Dasturlash",
-  }, 
-  {
-    id: 2,
-    name: "DevOps",
-  }, 
-  {
-    id: 3,
-    name: "Tarmoq administratorligi",
-  }, 
-  {
-    id: 4,
-    name: "Axborot Xavfsizligi",
-  }, 
-  {
-    id: 5,
-    name: "Ma'lumotlar ombori",
-  },
-];
-
-router.get('/', (req, res) => {
-  res.status(200).send(categories);
+router.get('/', async (req, res) => {
+  const allCategories = await Categories.find().sort({name: 1});
+  res.status(200).send(allCategories);
 });
 
-router.get('/:id', (req, res) => {
-  const requestedCategoryId = parseInt(req.params.id);
-  const requestedCategory = categories.find(category => category.id === requestedCategoryId);
-  res.status(200).send(requestedCategory);
+async function getCategor(id) {
+  const findedCategory = await Categories.findById(id);
+
+  if(findedCategory === Null) {
+    return Null;
+  } else {
+    return findedCategory;
+  }
+}
+
+router.get('/:id', async (req, res) => {
+  const findedCategory = await Categories.findById(req.params.id)
+  if(!findedCategory) {
+    return res.status(404).send("Berilgan IDga teng bo'lgan toifa topilmadi");
+  }
+   res.status(200).send(findedCategory);
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+  const { error } = categoryValidator(req.body); 
+  if( error ) {
+    return res.status(400).send(error.details[0].message);
+  }
+  let category = new Categories({
+    name: req.body.name
+  });
+  category = await category.save();
+  res.status(201).send(category);
+});
+
+router.put('/:id', async (req, res) => {
   const { error } = categoryValidator(req.body);
   if( error ) {
     return res.status(400).send(error.details[0].message);
   }
-
-  const newCategory = {
-    id: categories.length + 1,
-    name: req.body.name,
-  };
-
-  categories.push(newCategory);
-
-  return res.status(201).send(categories[categories.length-1]);
+  const updatingCategory = await Categories.findById(req.params.id);
+  if(!updatingCategory) {
+    return res.status(404).send("Berilgan IDga teng bo'lgan toifa topilmadi");
+  }
+  updatingCategory.name = req.body.name;
+  const updatedCategory = updatingCategory.save();
+  res.status(200).send(updatedCategory);
 });
 
-router.put('/:id', (req, res) => {
-  const { error } = categoryValidator(req.body);
-
-  if( error ) {
-    return res.status(400).send(error.details[0].message);
+router.delete('/:id', async (req, res) => {
+  const deletedCategory = await Categories.findByIdAndRemove(req.params.id);
+  if(!deletedCategory) {
+    return res.status(404).send("Berilgan IDga teng bo'lgan toifa topilmadi");
   }
-
-  if(userIdParamValidator(req.params.id) === "invalid") {
-    return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
-  }
-
-  const updatingCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
-  const updatedCategory = {
-    id: updatingCategoryIndex+1,
-    name: userDataSanitizator(req.body.name),
-  }
-  categories.splice(updatingCategoryIndex, 1, updatedCategory);
-  return res.status(200).send(categories[updatingCategoryIndex]);
-});
-
-router.delete('/:id', (req, res) => {
-  if(userIdParamValidator(req.params.id) === "invalid") {
-    return res.status(400).send("Ko'rsatilgan ID ga ega bo'lgan categoriya topilmadi!");
-  }
-  const updatingCategoryIndex = categories.findIndex(category => category.id === parseInt(req.params.id));
-  categories.splice(updatingCategoryIndex, 1, );
-  return res.status(200).send(categories);
+  res.status(200).send(deletedCategory);
 });
 
 function categoryValidator(validatingObject) {
@@ -120,16 +87,6 @@ function categoryValidator(validatingObject) {
   });
 
   return categoryScheme.validate(validatingObject);
-}
-
-function userDataSanitizator(userData) {
-  return userData.trim();
-}
-
-function userIdParamValidator(id) {
-  const updatingCategoryId = parseInt(id);
-
-  return (updatingCategoryId < 1 || updatingCategoryId > categories.length) ? "invalid" : "valid"
 }
 
 module.exports = router;
