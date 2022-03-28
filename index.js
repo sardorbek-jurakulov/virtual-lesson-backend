@@ -1,7 +1,8 @@
 const express = require('express');
 const config = require('config');
 const mongoose = require('mongoose');
-const categories = require('./routes/categories');
+const categoriesRoute = require('./routes/categories');
+const customersRoute = require('./routes/customers');
 
 const app = express();
 
@@ -16,7 +17,8 @@ mongoose.connect(dbConnection)
   });
 
 app.use(express.json());
-app.use('/api/categories', categories);
+app.use('/api/categories', categoriesRoute);
+app.use('/api/customers', customersRoute);
 
 const port = process.env.PORT || 5000;
 
