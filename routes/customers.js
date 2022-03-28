@@ -1,7 +1,15 @@
 const express = require('express');
 const config = require('config');
 const Joi = require('joi');
-const route = express.Router();
+const router = express.Router();
+
+route.get('/', (req, res) => {
+
+});
+
+route.post('/', (req, res) => {
+
+});
 
 
-module.exports = route;
+module.exports = router;
